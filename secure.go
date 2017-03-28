@@ -70,6 +70,8 @@ type Options struct {
 	// When developing, the AllowedHosts, SSL, and STS options can cause some unwanted effects. Usually testing happens on http, not https, and one localhost, not your production domain... we check `if martini.Env == martini.Prod`.
 	// If you would like your development environment to mimic production with complete Host blocking, SSL redirects, and STS headers, set this to true. Default if false.
 	DisableProdCheck bool
+	// Redirect code. This defaults to 301 whcih browsers cache permanently.
+	RedirectCode int
 }
 
 // Secure is a middleware that helps setup a few basic security features. A single secure.Options struct can be
@@ -138,7 +140,12 @@ func applySSL(opt Options, res http.ResponseWriter, req *http.Request) {
 				url.Host = opt.SSLHost
 			}
 
-			http.Redirect(res, req, url.String(), http.StatusMovedPermanently)
+			redirectCode := http.StatusMovedPermanently
+			if opt.RedirectCode > 0 {
+				redirectCode = opt.RedirectCode
+			}
+
+			http.Redirect(res, req, url.String(), redirectCode)
 		}
 	}
 }
